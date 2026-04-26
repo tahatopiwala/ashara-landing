@@ -1,9 +1,11 @@
+import { Link } from 'react-router';
 import { useCity } from '../context/CityContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 
 export function AboutCityPage() {
-  const { city, loading, error } = useCity();
+  const { city, citySlug, loading, error } = useCity();
 
   if (loading) {
     return (
@@ -28,13 +30,23 @@ export function AboutCityPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero */}
-      <div className="text-center mb-10">
+      <div className="relative text-center mb-10">
         <h1 className="text-3xl font-bold mb-2">About {city.name}</h1>
         {city.tagline && (
           <p className="text-lg text-muted-foreground">{city.tagline}</p>
         )}
         {city.subtitle && (
           <p className="text-muted-foreground">{city.subtitle}</p>
+        )}
+        {citySlug && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="absolute right-0 top-0"
+            render={<Link to={`/admin/cities/${citySlug}/about`} />}
+          >
+            Edit
+          </Button>
         )}
       </div>
 

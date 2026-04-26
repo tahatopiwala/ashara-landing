@@ -15,6 +15,7 @@ import taabudaatRoutes from './routes/public/taabudaat.js';
 import adminNewsRoutes from './routes/admin/news.js';
 import adminZonesRoutes from './routes/admin/zones.js';
 import adminUploadsRoutes from './routes/admin/uploads.js';
+import adminCitiesRoutes from './routes/admin/cities.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -34,6 +35,7 @@ app.use('/api', taabudaatRoutes);
 app.use('/api/admin', authMiddleware, adminNewsRoutes);
 app.use('/api/admin', authMiddleware, adminZonesRoutes);
 app.use('/api/admin', authMiddleware, adminUploadsRoutes);
+app.use('/api/admin', authMiddleware, adminCitiesRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

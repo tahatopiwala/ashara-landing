@@ -7,6 +7,7 @@ import { TransportationPage } from './pages/TransportationPage';
 import { NewsPage } from './pages/NewsPage';
 import { NewsArticlePage } from './pages/NewsArticlePage';
 import { TaabudaatPage } from './pages/TaabudaatPage';
+import { AdminAboutCityPage } from './pages/admin/AdminAboutCityPage';
 
 function PageRoutes() {
   return (
@@ -34,6 +35,11 @@ export default function App() {
         {/* City-specific routes */}
         <Route path="cities/:citySlug" element={<MainLayout />}>
           {PageRoutes()}
+        </Route>
+
+        {/* Admin routes */}
+        <Route path="admin/cities/:citySlug" element={<MainLayout />}>
+          <Route path="about" element={<AdminAboutCityPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
