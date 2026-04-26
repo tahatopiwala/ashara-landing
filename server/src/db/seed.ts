@@ -4,7 +4,12 @@ import {
   CreateTableCommand,
   DescribeTableCommand,
 } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  ScanCommand,
+  DeleteCommand,
+} from '@aws-sdk/lib-dynamodb';
 import type {
   CityProfile,
   CityTransportation,
@@ -79,6 +84,36 @@ async function createSimpleTable(
   console.log(`  Created table ${tableName}`);
 }
 
+async function wipeTable(tableName: string, keyAttrs: string[]) {
+  if (!(await tableExists(tableName))) return;
+
+  let lastKey: Record<string, unknown> | undefined;
+  let count = 0;
+  do {
+    const result = await docClient.send(
+      new ScanCommand({
+        TableName: tableName,
+        ProjectionExpression: keyAttrs.map((_, i) => `#k${i}`).join(', '),
+        ExpressionAttributeNames: Object.fromEntries(
+          keyAttrs.map((k, i) => [`#k${i}`, k])
+        ),
+        ExclusiveStartKey: lastKey,
+      })
+    );
+
+    for (const item of result.Items || []) {
+      const key = Object.fromEntries(keyAttrs.map((k) => [k, item[k]]));
+      await docClient.send(
+        new DeleteCommand({ TableName: tableName, Key: key })
+      );
+      count++;
+    }
+    lastKey = result.LastEvaluatedKey;
+  } while (lastKey);
+
+  console.log(`  Wiped ${count} item(s) from ${tableName}`);
+}
+
 // ===== Seed Data =====
 
 const eventConfig: EventConfig & { pk: string } = {
@@ -86,8 +121,8 @@ const eventConfig: EventConfig & { pk: string } = {
   name: 'Ashara Mubaraka',
   year: 'Araz 1448',
   hijriYear: '1448H',
-  startDate: '2026-07-15T00:00:00Z',
-  endDate: '2026-07-25T00:00:00Z',
+  startDate: '2026-06-15T00:00:00Z',
+  endDate: '2026-06-25T00:00:00Z',
   activeCitySlug: 'nagpur',
 };
 
@@ -99,6 +134,7 @@ const cities: CityProfile[] = [
     subtitle: 'Gateway to India\'s Finest Wildlife',
     contactEmail: 'info@asharanagpur.com',
     coordinates: { lat: 21.1458, lon: 79.0882 },
+    mapEmbedUrl: 'https://maps.google.com/maps?q=Nagpur,India&z=12&output=embed',
     heroImageKey: 'nagpur/city/hero.jpg',
     theme: { primaryColor: '#2d6a4f', accentColor: '#d4a373' },
     about: {
@@ -155,6 +191,7 @@ const cities: CityProfile[] = [
     subtitle: 'The Financial Capital of India',
     contactEmail: 'info@asharamumbai.com',
     coordinates: { lat: 19.076, lon: 72.8777 },
+    mapEmbedUrl: 'https://maps.google.com/maps?q=Mumbai,India&z=11&output=embed',
     heroImageKey: 'mumbai/city/hero.jpg',
     theme: { primaryColor: '#1a365d', accentColor: '#e2725b' },
     about: {
@@ -200,6 +237,7 @@ const cities: CityProfile[] = [
     subtitle: 'Where History Meets Modernity',
     contactEmail: 'info@asharalondon.com',
     coordinates: { lat: 51.5074, lon: -0.1278 },
+    mapEmbedUrl: 'https://maps.google.com/maps?q=London,UK&z=11&output=embed',
     heroImageKey: 'london/city/hero.jpg',
     theme: { primaryColor: '#1e3a5f', accentColor: '#c8a951' },
     about: {
@@ -478,6 +516,14 @@ async function seed() {
   await createSimpleTable(Tables.TRANSPORTATION, 'citySlug');
   await createSimpleTable(Tables.NEWS, 'citySlug', 'sk');
   await createSimpleTable(Tables.TAABUDAAT, 'citySlug');
+
+  console.log('\nWiping existing data...');
+  await wipeTable(Tables.CONFIG, ['pk']);
+  await wipeTable(Tables.CITIES, ['citySlug']);
+  await wipeTable(Tables.ZONES, ['citySlug', 'zoneId']);
+  await wipeTable(Tables.TRANSPORTATION, ['citySlug']);
+  await wipeTable(Tables.NEWS, ['citySlug', 'sk']);
+  await wipeTable(Tables.TAABUDAAT, ['citySlug']);
 
   console.log('\nSeeding event config...');
   await docClient.send(

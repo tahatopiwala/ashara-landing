@@ -70,6 +70,23 @@ export function AboutCityPage() {
         </div>
       )}
 
+      {/* Map */}
+      {city.mapEmbedUrl && (
+        <div className="mb-10">
+          <h2 className="text-2xl font-semibold mb-4">Location</h2>
+          <div className="overflow-hidden rounded-lg border aspect-video">
+            <iframe
+              title={`Map of ${city.name}`}
+              src={city.mapEmbedUrl}
+              className="w-full h-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+
       {/* Attractions */}
       {about.attractions.length > 0 && (
         <div className="mb-10">

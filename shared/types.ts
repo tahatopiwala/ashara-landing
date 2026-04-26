@@ -16,6 +16,7 @@ export interface CityProfile {
   subtitle: string;
   contactEmail: string;
   coordinates: Coordinates;
+  mapEmbedUrl: string;
   heroImageKey: string;
   theme: CityTheme;
   about: CityAbout;
