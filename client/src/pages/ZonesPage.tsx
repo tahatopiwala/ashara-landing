@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 import { useCity } from '../context/CityContext';
 import { fetchZones } from '../api/zones';
 import { ZoneCard } from '../components/zones/ZoneCard';
+import { Button } from '../components/ui/button';
 import type { Zone } from '../../../shared/types';
 
 export function ZonesPage() {
@@ -28,7 +30,18 @@ export function ZonesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2">Zones</h1>
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h1 className="text-3xl font-bold">Zones</h1>
+        {citySlug && (
+          <Button
+            variant="outline"
+            size="sm"
+            render={<Link to={`/admin/cities/${citySlug}/zones`} />}
+          >
+            Edit
+          </Button>
+        )}
+      </div>
       <p className="text-muted-foreground mb-6">
         Zones for {city?.name || 'the city'}
       </p>

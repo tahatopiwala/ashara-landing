@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 import { useCity } from '../context/CityContext';
 import { fetchNews } from '../api/news';
 import { NewsCard } from '../components/news/NewsCard';
+import { Button } from '../components/ui/button';
 import type { NewsItem } from '../../../shared/types';
 
 export function NewsPage() {
@@ -28,7 +30,18 @@ export function NewsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2">Latest News</h1>
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h1 className="text-3xl font-bold">Latest News</h1>
+        {citySlug && (
+          <Button
+            variant="outline"
+            size="sm"
+            render={<Link to={`/admin/cities/${citySlug}/news`} />}
+          >
+            Edit
+          </Button>
+        )}
+      </div>
       <p className="text-muted-foreground mb-6">
         Updates & announcements for {city?.name || 'the city'}
       </p>

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 import { useCity } from '../context/CityContext';
 import { apiFetch } from '../api/client';
 import { fetchZones } from '../api/zones';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 import {
   Table,
   TableBody,
@@ -47,7 +49,18 @@ export function TransportationPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2">Transportation</h1>
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h1 className="text-3xl font-bold">Transportation</h1>
+        {citySlug && (
+          <Button
+            variant="outline"
+            size="sm"
+            render={<Link to={`/admin/cities/${citySlug}/transportation`} />}
+          >
+            Edit
+          </Button>
+        )}
+      </div>
       <p className="text-muted-foreground mb-6">
         Getting to {city?.name || 'the city'}
       </p>

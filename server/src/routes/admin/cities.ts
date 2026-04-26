@@ -1,10 +1,12 @@
 import { Router } from 'express';
-import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, Tables } from '../../db/dynamo.js';
 import type {
   CityAbout,
+  CityTransportation,
   Attraction,
   Activity,
+  TransportHub,
 } from '../../../../shared/types.js';
 
 const router = Router();
@@ -53,6 +55,30 @@ function validateAbout(about: unknown): about is CityAbout {
   );
 }
 
+function validateHub(h: unknown): h is TransportHub {
+  if (!h || typeof h !== 'object') return false;
+  const x = h as Record<string, unknown>;
+  return (
+    typeof x.name === 'string' &&
+    typeof x.code === 'string' &&
+    typeof x.address === 'string' &&
+    isStringArray(x.facilities) &&
+    isStringArray(x.transportOptions)
+  );
+}
+
+function validateTransportation(t: unknown): t is Omit<CityTransportation, 'citySlug'> {
+  if (!t || typeof t !== 'object') return false;
+  const x = t as Record<string, unknown>;
+  return (
+    Array.isArray(x.airports) &&
+    x.airports.every(validateHub) &&
+    Array.isArray(x.railwayStations) &&
+    x.railwayStations.every(validateHub) &&
+    isStringArray(x.travelTips)
+  );
+}
+
 router.put('/cities/:slug/about', async (req, res) => {
   try {
     const citySlug = req.params.slug;
@@ -87,6 +113,32 @@ router.put('/cities/:slug/about', async (req, res) => {
     res.json({ about });
   } catch (error) {
     console.error('Error updating city about:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.put('/cities/:slug/transportation', async (req, res) => {
+  try {
+    const citySlug = req.params.slug;
+    const { transportation } = req.body;
+
+    if (!validateTransportation(transportation)) {
+      res.status(400).json({ error: 'Invalid transportation payload' });
+      return;
+    }
+
+    const item: CityTransportation = { citySlug, ...transportation };
+
+    await docClient.send(
+      new PutCommand({
+        TableName: Tables.TRANSPORTATION,
+        Item: item,
+      })
+    );
+
+    res.json({ transportation: item });
+  } catch (error) {
+    console.error('Error updating transportation:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
